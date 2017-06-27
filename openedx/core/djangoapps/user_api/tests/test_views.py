@@ -33,7 +33,7 @@ from xmodule.modulestore.tests.django_utils import SharedModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
 from ..accounts import (
     NAME_MAX_LENGTH, EMAIL_MIN_LENGTH, EMAIL_MAX_LENGTH, PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH,
-    USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH
+    USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH, USERNAME_BAD_LENGTH_MSG
 )
 from ..accounts.api import get_account_settings
 from ..models import UserOrgTag
@@ -1062,6 +1062,9 @@ class RegistrationViewTest(ThirdPartyAuthTestMixin, UserAPITestCase):
                     {"value": "none", "name": "No formal education", "default": False},
                     {"value": "other", "name": "Other education", "default": False},
                 ],
+                "errorMessages": {
+                    "required": "Please select your highest level of education completed."
+                }
             }
         )
 
@@ -1088,6 +1091,9 @@ class RegistrationViewTest(ThirdPartyAuthTestMixin, UserAPITestCase):
                     {"value": "none", "name": "No formal education TRANSLATED", "default": False},
                     {"value": "other", "name": "Other education TRANSLATED", "default": False},
                 ],
+                "errorMessages": {
+                    "required": "Please select your highest level of education completed."
+                }
             }
         )
 
@@ -1165,6 +1171,9 @@ class RegistrationViewTest(ThirdPartyAuthTestMixin, UserAPITestCase):
                 "type": "textarea",
                 "required": False,
                 "label": "Mailing address",
+                "errorMessages": {
+                    "required": "Please enter your mailing address."
+                }
             }
         )
 
@@ -1177,7 +1186,10 @@ class RegistrationViewTest(ThirdPartyAuthTestMixin, UserAPITestCase):
                 "required": False,
                 "label": u"Tell us why you're interested in {platform_name}".format(
                     platform_name=settings.PLATFORM_NAME
-                )
+                ),
+                "errorMessages": {
+                    "required": "Please tell us your goals."
+                }
             }
         )
 
@@ -1189,6 +1201,9 @@ class RegistrationViewTest(ThirdPartyAuthTestMixin, UserAPITestCase):
                 "type": "text",
                 "required": False,
                 "label": "City",
+                "errorMessages": {
+                    "required": "Please enter your City."
+                }
             }
         )
 
@@ -1856,8 +1871,8 @@ class RegistrationViewTest(ThirdPartyAuthTestMixin, UserAPITestCase):
         self.assertEqual(
             response_json,
             {
-                "username": [{"user_message": "Username must be minimum of two characters long"}],
-                "password": [{"user_message": "A valid password is required"}],
+                u"username": [{u"user_message": USERNAME_BAD_LENGTH_MSG}],
+                u"password": [{u"user_message": u"A valid password is required"}],
             }
         )
 
