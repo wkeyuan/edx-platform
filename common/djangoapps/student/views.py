@@ -789,14 +789,6 @@ def dashboard(request):
     statuses = ["approved", "denied", "pending", "must_reverify"]
     reverifications = reverification_info(statuses)
 
-    user_already_has_certs_for = GeneratedCertificate.course_ids_with_certs_for_user(request.user)
-    show_refund_option_for = frozenset(
-        enrollment.course_id for enrollment in course_enrollments
-        if enrollment.refundable(
-            user_already_has_certs_for=user_already_has_certs_for
-        )
-    )
-
     block_courses = frozenset(
         enrollment.course_id for enrollment in course_enrollments
         if is_course_blocked(
@@ -862,7 +854,6 @@ def dashboard(request):
         'verification_status': verification_status,
         'verification_status_by_course': verify_status_by_course,
         'verification_errors': verification_errors,
-        'show_refund_option_for': show_refund_option_for,
         'block_courses': block_courses,
         'denied_banner': denied_banner,
         'billing_email': settings.PAYMENT_SUPPORT_EMAIL,
@@ -891,6 +882,50 @@ def dashboard(request):
     response = render_to_response('dashboard.html', context)
     set_user_info_cookie(response, request)
     return response
+
+
+@login_required
+def course_run_refund_status(request, course_id):
+    """
+    Get Refundable status for a course.
+
+    Arguments:
+        request: The request object.
+        course_id (str): The unique identifier for the course.
+
+    Returns:
+        Json response.
+
+    """
+
+    if course_id:
+        try:
+            course_key = CourseKey.from_string(course_id)
+            course_enrollment = CourseEnrollment.get_enrollment(request.user, course_key)
+
+        except InvalidKeyError:
+            logging.exception("An error as occured while getting refund status for a course")
+
+            return JsonResponse({
+                'course_refundable_status': '',
+            }, status=500)
+        try:
+            refundable_status = course_enrollment.refundable()
+            logging.info("Course refund status for course {0} is {1}".format(course_id, refundable_status))
+
+            return JsonResponse({
+                'course_refundable_status': refundable_status,
+            }, status=200)
+        except Exception:
+            logging.exception("An error as occured while getting refund status for a course")
+
+            return JsonResponse({
+                'course_refundable_status': '',
+            }, status=500)
+
+    return JsonResponse({
+        'course_refundable_status': '',
+    }, status=500)
 
 
 def get_verification_error_reasons_for_display(verification_error_codes):
