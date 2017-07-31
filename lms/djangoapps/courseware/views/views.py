@@ -939,6 +939,15 @@ def _get_cert_data(student, course, course_key, is_active, enrollment_mode):
 
     cert_downloadable_status = certs_api.certificate_downloadable_status(student, course_key)
 
+    if cert_downloadable_status['is_dateunavailable']:
+        return CertData(
+            CertificateStatuses.unavailable,
+            _('Congratulations, you qualified for a certificate!'),
+            _('You can keep working for a higher grade.'),
+            download_url=None,
+            cert_web_view_url=None
+        )
+
     if cert_downloadable_status['is_downloadable']:
         cert_status = CertificateStatuses.downloadable
         title = _('Your certificate is available')
@@ -1346,7 +1355,7 @@ def _track_successful_certificate_generation(user_id, course_id):  # pylint: dis
     Track a successful certificate generation event.
 
     Arguments:
-        user_id (str): The ID of the user generting the certificate.
+        user_id (str): The ID of the user generating the certificate.
         course_id (CourseKey): Identifier for the course.
     Returns:
         None

@@ -1215,6 +1215,7 @@ class ProgressPageBaseTests(ModuleStoreTestCase):
         self.course = CourseFactory.create(
             start=datetime(2013, 9, 16, 7, 17, 28),
             grade_cutoffs={u'çü†øƒƒ': 0.75, 'Pass': 0.5},
+            end=datetime.now(),
             **options
         )
 
@@ -1681,12 +1682,14 @@ class ProgressPageTests(ProgressPageBaseTests):
         return generated_certificate
 
     def mock_certificate_downloadable_status(
-            self, is_downloadable=False, is_generating=False, is_unverified=False, uuid=None, download_url=None
+            self, is_downloadable=False, is_generating=False, is_unavailable=False, is_unverified=False, uuid=None,
+            download_url=None
     ):
         """Dry method to mock certificate downloadable status response."""
         return {
             'is_downloadable': is_downloadable,
             'is_generating': is_generating,
+            'is_dateunavailable': is_unavailable,
             'is_unverified': is_unverified,
             'download_url': uuid,
             'uuid': download_url,
@@ -2051,6 +2054,7 @@ class GenerateUserCertTests(ModuleStoreTestCase):
         self.course = CourseFactory.create(
             org='edx',
             number='verified',
+            end=datetime.now(),
             display_name='Verified Course',
             grade_cutoffs={'cutoff': 0.75, 'Pass': 0.5}
         )

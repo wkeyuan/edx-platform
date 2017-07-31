@@ -221,7 +221,12 @@ def certificate_downloadable_status(student, course_key):
     Returns:
         Dict containing student passed status also download url, uuid for cert if available
     """
-    current_status = certificate_status_for_student(student, course_key)
+    from lms.djangoapps.courseware.courses import get_course_by_id
+
+    if course_key and not get_course_by_id(course_key).may_certify():
+        current_status = {'status': CertificateStatuses.date_unavailable}
+    else:
+        current_status = certificate_status_for_student(student, course_key)
 
     # If the certificate status is an error user should view that status is "generating".
     # On the back-end, need to monitor those errors and re-submit the task.
@@ -231,6 +236,7 @@ def certificate_downloadable_status(student, course_key):
         'is_generating': True if current_status['status'] in [CertificateStatuses.generating,
                                                               CertificateStatuses.error] else False,
         'is_unverified': True if current_status['status'] == CertificateStatuses.unverified else False,
+        'is_dateunavailable': True if current_status['status'] == CertificateStatuses.date_unavailable else False,
         'download_url': None,
         'uuid': None,
     }
