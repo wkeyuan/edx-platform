@@ -309,6 +309,7 @@ class SuccessFactorsIntegrationTest(SamlIntegrationTestUtilities, IntegrationTes
                         'lastName': 'Smith',
                         'defaultFullName': 'John Smith',
                         'email': 'john@smith.com',
+                        'country': 'Australia',
                     }
                 })
             )
@@ -331,6 +332,7 @@ class SuccessFactorsIntegrationTest(SamlIntegrationTestUtilities, IntegrationTes
         self.USER_USERNAME = "myself"
         super(SuccessFactorsIntegrationTest, self).test_register()
 
+    @patch.dict('settings.REGISTRATION_EXTRA_FIELDS', country='optional')
     def test_register_sapsf_metadata_present(self):
         """
         Configure the provider such that it can talk to a mocked-out version of the SAP SuccessFactors
@@ -347,7 +349,27 @@ class SuccessFactorsIntegrationTest(SamlIntegrationTestUtilities, IntegrationTes
                 'odata_client_id': 'TatVotSEiCMteSNWtSOnLanCtBGwNhGB',
             })
         )
-        super(SuccessFactorsIntegrationTest, self).test_register()
+        super(SuccessFactorsIntegrationTest, self).test_register(country='AU')
+
+    @patch.dict('settings.REGISTRATION_EXTRA_FIELDS', country='optional')
+    def test_register_sapsf_metadata_present_custom_value_map(self):
+        """
+        Configure the provider such that it can talk to a mocked-out version of the SAP SuccessFactors
+        API, and ensure that the data it gets that way gets passed to the registration form.
+        """
+        self._configure_testshib_provider(
+            identity_provider_type='sap_success_factors',
+            metadata_source=TESTSHIB_METADATA_URL,
+            other_settings=json.dumps({
+                'sapsf_oauth_root_url': 'http://successfactors.com/oauth/',
+                'sapsf_private_key': 'fake_private_key_here',
+                'odata_api_root_url': 'http://api.successfactors.com/odata/v2/',
+                'odata_company_id': 'NCC1701D',
+                'odata_client_id': 'TatVotSEiCMteSNWtSOnLanCtBGwNhGB',
+                'sapsf_value_mappings': {'country': {'Australia': 'NZ'}}
+            })
+        )
+        super(SuccessFactorsIntegrationTest, self).test_register(country='NZ')
 
     def test_register_http_failure(self):
         """
