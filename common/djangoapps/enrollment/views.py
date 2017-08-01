@@ -29,7 +29,12 @@ from openedx.core.lib.api.authentication import (
 from openedx.core.lib.api.permissions import ApiKeyHeaderPermission, ApiKeyHeaderPermissionIsAuthenticated
 from openedx.core.lib.exceptions import CourseNotFoundError
 from openedx.core.lib.log_utils import audit_log
-from openedx.features.enterprise_support.api import EnterpriseApiClient, EnterpriseApiException, enterprise_enabled
+from openedx.features.enterprise_support.api import (
+    ConsentApiClient,
+    EnterpriseApiClient,
+    EnterpriseApiException,
+    enterprise_enabled
+)
 from student.auth import user_has_role
 from student.models import User
 from student.roles import CourseStaffRole, GlobalStaff
@@ -581,8 +586,19 @@ class EnrollmentListView(APIView, ApiKeyPermissionMixIn):
                 )
 
             enterprise_course_consent = request.data.get('enterprise_course_consent')
+            explicit_linked_enterprise = request.data.get('linked_enterprise_customer')
+            if has_api_key_permissions and enterprise_enabled() and explicit_linked_enterprise is not None:
+                kwargs = {
+                    'username': username,
+                    'course_id': unicode(course_id),
+                    'enterprise_customer_uuid': explicit_linked_enterprise,
+                }
+                consent_client = ConsentApiClient()
+                if consent_client.consent_needed(**kwargs):
+                    consent_client.provide_consent(**kwargs)
+
             # Check if the enterprise_course_enrollment is a boolean
-            if has_api_key_permissions and enterprise_enabled() and enterprise_course_consent is not None:
+            elif has_api_key_permissions and enterprise_enabled() and enterprise_course_consent is not None:
                 if not isinstance(enterprise_course_consent, bool):
                     return Response(
                         status=status.HTTP_400_BAD_REQUEST,
