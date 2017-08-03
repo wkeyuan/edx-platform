@@ -55,6 +55,8 @@
                     this.autoSubmit = data.thirdPartyAuth.autoSubmitRegForm;
                     this.hideAuthWarnings = data.hideAuthWarnings;
                     this.autoRegisterWelcomeMessage = data.thirdPartyAuth.autoRegisterWelcomeMessage || '';
+                    this.registerFormSubmitButtonText =
+                        data.thirdPartyAuth.registerFormSubmitButtonText || _('Create Account');
 
                     this.listenTo(this.model, 'sync', this.saveSuccess);
                     this.listenTo(this.model, 'validation', this.renderLiveValidations);
@@ -74,7 +76,8 @@
                             providers: this.providers,
                             hasSecondaryProviders: this.hasSecondaryProviders,
                             platformName: this.platformName,
-                            autoRegisterWelcomeMessage: this.autoRegisterWelcomeMessage
+                            autoRegisterWelcomeMessage: this.autoRegisterWelcomeMessage,
+                            registerFormSubmitButtonText: this.registerFormSubmitButtonText
                         }
                     }));
 
@@ -265,6 +268,7 @@
                         )
                     );
                     this.renderErrors(this.defaultFormErrorsTitle, this.errors);
+                    this.scrollToFormFeedback();
                     this.toggleDisableButton(false);
                 },
 
@@ -273,6 +277,11 @@
                     // The form did not get submitted due to validation errors.
                         $(this.el).show(); // Show in case the form was hidden for auto-submission
                     }
+                },
+
+                resetValidationVariables: function() {
+                    this.positiveValidationEnabled = true;
+                    this.negativeValidationEnabled = true;
                 },
 
                 renderAuthWarning: function() {
@@ -289,6 +298,26 @@
                         jsHook: this.authWarningJsHook,
                         message: fullMsg
                     });
+                },
+
+                submitForm: function(event) { // eslint-disable-line no-unused-vars
+                    var elements = this.$form[0].elements,
+                        $el,
+                        i;
+
+                // As per requirements, disable positive validation for submission.
+                    this.positiveValidationEnabled = false;
+
+                    for (i = 0; i < elements.length; i++) {
+                        $el = $(elements[i]);
+
+                        // Simulate live validation.
+                        if ($el.attr('required')) {
+                            $el.blur();
+                        }
+                    }
+
+                    FormView.prototype.submitForm.apply(this, arguments);
                 },
 
                 getFormData: function() {

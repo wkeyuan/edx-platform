@@ -185,6 +185,7 @@
                         )
                     ];
                     this.renderErrors(this.defaultFormErrorsTitle, this.errors);
+                    this.scrollToFormFeedback();
                     this.toggleDisableButton(false);
                 },
 
@@ -282,6 +283,10 @@
                     return true;
                 },
 
+                resetValidationVariables: function() {
+                    return true;
+                },
+
                 clearFormErrors: function() {
                     var query = '.' + this.formErrorsJsHook;
                     this.clearFormFeedbackItems(query);
@@ -306,6 +311,19 @@
                     if (this.$submitButton) {
                         this.$submitButton.attr('disabled', disabled);
                     }
+                },
+
+                scrollToFormFeedback: function() {
+                    var self = this;
+                // Scroll to feedback container
+                    $('html,body').animate({
+                        scrollTop: this.$formFeedback.offset().top
+                    }, 'slow', function() {
+                        self.resetValidationVariables();
+                    });
+
+                // Focus on the feedback container to ensure screen readers see the messages.
+                    this.$formFeedback.focus();
                 },
 
                 validate: function($el) {
