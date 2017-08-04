@@ -58,3 +58,11 @@ def i_unenroll_from_that_course(_step, course):
     button_css = '#unenroll-modal input[value="Unenroll"]'
     assert world.is_css_present(button_css)
     world.css_click(button_css)
+
+    button_css = '.submit_reasons'
+    assert world.is_css_present(button_css)
+    world.css_click(button_css)
+
+    button_css = '.return_to_dashboard'
+    assert world.is_css_present(button_css)
+    world.css_click(button_css)
