@@ -153,6 +153,12 @@ class SapSuccessFactorsIdentityProvider(EdXSAMLIdentityProvider):
         'country': {name: code for code, name in countries}
     }
 
+    # Unfortunately, not everything has a 1:1 name mapping between Open edX and SAPSF, so
+    # we need some overrides. TODO: Fill in necessary mappings
+    default_value_mapping.update({
+        'United States': 'US',
+    })
+
     def get_registration_fields(self, response):
         field_mapping = self.field_mappings
         mapped = {edx_name: response['d'][odata_name] for odata_name, edx_name in field_mapping.items()}
