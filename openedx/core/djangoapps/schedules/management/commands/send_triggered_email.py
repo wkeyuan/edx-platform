@@ -86,8 +86,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
-from lms.djangoapps.courseware.views.views import format_course_price
-from course_modes.models import CourseMode
+from course_modes.models import CourseMode, format_course_price
 from lms.djangoapps.commerce.utils import EcommerceService
 from util.date_utils import strftime_localized
 
