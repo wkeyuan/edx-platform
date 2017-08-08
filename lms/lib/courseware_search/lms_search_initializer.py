@@ -3,9 +3,7 @@ This file contains implementation override of SearchInitializer which will allow
     * To set initial set of masquerades and other parameters
 """
 
-from opaque_keys import InvalidKeyError
 from opaque_keys.edx.keys import CourseKey
-from opaque_keys.edx.locations import SlashSeparatedCourseKey
 from search.initializer import SearchInitializer
 
 from courseware.access import has_access
