@@ -8,10 +8,14 @@ from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy
 from django.utils.translation import override as override_language
 from jinja2 import Environment, contextfilter, Markup, escape
+from django.test.utils import CaptureQueriesContext
+from django.db.models import Prefetch
 
 from openedx.core.djangoapps.schedules.models import Schedule
 from openedx.core.djangoapps.schedules.tasks import send_email_batch
+from openedx.core.djangoapps.user_api.models import UserPreference
 
+from django.db import DEFAULT_DB_ALIAS, connections
 
 class Command(BaseCommand):
 
@@ -22,7 +26,7 @@ class Command(BaseCommand):
         current_date = datetime.date(*[int(x) for x in options['date'].split('-')])
         target_date = current_date - datetime.timedelta(days=1)
 
-        self.send_verified_upgrade_reminder(target_date, 18)
+        self.send_verified_upgrade_reminder(target_date, 19)
 
     def send_verified_upgrade_reminder(self, target_date, days_before_deadline):
         deadline_date = target_date + datetime.timedelta(days=days_before_deadline)
@@ -82,7 +86,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
-from lms.djangoapps.courseware.views.views import get_cosmetic_verified_display_price
+from lms.djangoapps.courseware.views.views import format_course_price
 from course_modes.models import CourseMode
 from lms.djangoapps.commerce.utils import EcommerceService
 from util.date_utils import strftime_localized
@@ -100,9 +104,7 @@ def get_upgrade_link(enrollment):
 
     ecommerce_service = EcommerceService()
     if ecommerce_service.is_enabled(user):
-        course_mode = CourseMode.objects.get(
-            course_id=course_id, mode_slug=CourseMode.VERIFIED
-        )
+        course_mode = enrollment.course.verified_modes[0]
         return ecommerce_service.get_checkout_page_url(course_mode.sku)
     return reverse('verify_student_upgrade_and_verify', args=(course_id,))
 
@@ -111,107 +113,86 @@ from django.db import connection
 
 
 def build_email_context(schedule_ids, email_template):
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT
-                profile.name AS user_full_name,
-                COALESCE(profile.name, `user`.username) AS user_personal_address,
-                schedule.start AS user_schedule_start,
-                schedule.upgrade_deadline AS user_schedule_upgrade_deadline,
-                `user`.email AS user_email,
-                `user`.username AS user_username,
-                tzpref.value AS user_time_zone,
-                enrollment.course_id,
-                course.display_name AS course_title,
-                course.start AS course_start,
-                course.end AS course_end,
-                mode.min_price AS course_verified_min_price,
-                mode.currency AS course_verified_currency,
-                mode.sku AS course_verified_sku
-            FROM
-                schedules_schedule schedule
-            JOIN
-                student_courseenrollment enrollment ON enrollment.id = schedule.enrollment_id
-            JOIN
-                auth_user `user` ON `user`.id = enrollment.user_id
-            JOIN
-                auth_userprofile profile ON profile.user_id = enrollment.user_id
-            LEFT JOIN
-                user_api_userpreference tzpref ON tzpref.user_id = enrollment.user_id AND tzpref.key = 'time_zone'
-            LEFT JOIN
-                course_overviews_courseoverview course ON course.id = enrollment.course_id
-            LEFT JOIN
-                course_modes_coursemode mode ON mode.course_id = enrollment.course_id AND mode.mode_slug = 'verified'
-            WHERE
-                schedule.id IN %s
-        """, [schedule_ids])
-        desc = cursor.description
-        nt_result = namedtuple('Result', [col[0] for col in desc])
-        print()
-        print([nt_result(*row) for row in cursor.fetchall()])
-        print()
-
-    schedules = Schedule.objects.select_related('enrollment__user__profile').filter(id__in=schedule_ids)
+    schedules = Schedule.objects.select_related(
+        'enrollment__user__profile',
+        'enrollment__course',
+    ).prefetch_related(
+        Prefetch(
+            'enrollment__course__modes',
+            queryset=CourseMode.objects.filter(mode_slug=CourseMode.VERIFIED),
+            to_attr='verified_modes'
+        ),
+        Prefetch(
+            'enrollment__user__preferences',
+            queryset=UserPreference.objects.filter(key='time_zone'),
+            to_attr='tzprefs'
+        ),
+    ).filter(
+        id__in=schedule_ids,
+    )
     print(schedules.query.sql_with_params())
 
     context = {}
-    course_cache = {}
     translated_template_cache = {}
 
     template_env = Environment()
     template_env.filters['human_readable_time'] = human_readable_time
     template_env.filters['call_to_action_button'] = call_to_action_button
 
-    for schedule in schedules:
-        enrollment = schedule.enrollment
-        user = enrollment.user
+    conn = connections[DEFAULT_DB_ALIAS]
+    capture = CaptureQueriesContext(conn)
+    with capture:
+        for schedule in schedules:
+            enrollment = schedule.enrollment
+            user = enrollment.user
 
-        user_time_zone = tzutc()
-        for preference in user.preferences.all():
-            if preference.key == 'time_zone':
+            user_time_zone = tzutc()
+            for preference in user.tzprefs:
                 user_time_zone = gettz(preference.value)
 
-        course_id_str = str(enrollment.course_id)
-        course = course_cache.get(course_id_str)
-        if course is None:
-            course = CourseOverview.get_from_id(enrollment.course_id)
-            course_cache[course_id_str] = course
+            course_id_str = str(enrollment.course_id)
+            course = enrollment.course
 
-        course_root = reverse('course_root', kwargs={'course_id': course_id_str})
+            course_root = reverse('course_root', kwargs={'course_id': course_id_str})
 
-        def absolute_url(relative_path):
-            return u'{}{}'.format(settings.LMS_ROOT_URL, relative_path)
+            def absolute_url(relative_path):
+                return u'{}{}'.format(settings.LMS_ROOT_URL, relative_path)
 
-        template_context = {
-            'user_full_name': user.profile.name,
-            'user_personal_address': user.profile.name if user.profile.name else user.username,
-            'user_username': user.username,
-            'user_time_zone': user_time_zone,
-            'user_schedule_start_time': schedule.start,
-            'user_schedule_verified_upgrade_deadline_time': schedule.upgrade_deadline,
-            'course_id': course_id_str,
-            'course_title': course.display_name,
-            'course_url': absolute_url(course_root),
-            'course_image_url': absolute_url(course.course_image_url),
-            'course_end_time': course.end,
-            'course_verified_upgrade_url': get_upgrade_link(enrollment),
-            'course_verified_upgrade_price': get_cosmetic_verified_display_price(course),
-        }
-
-        with override_language(course.language):
-            translated_template = translated_template_cache.get(course.language)
-            if not translated_template:
-                translated_template = template_env.from_string(unicode(email_template.content_template))
-                translated_template_cache[course.language] = translated_template
-
-            email_context = {
-                'template_subject': unicode(email_template.subject),
-                'template_preview_text': unicode(email_template.preview_text),
-                'template_body': translated_template.render(template_context),
-                'template_from': template_context['course_title'],
+            template_context = {
+                'user_full_name': user.profile.name,
+                'user_personal_address': user.profile.name if user.profile.name else user.username,
+                'user_username': user.username,
+                'user_time_zone': user_time_zone,
+                'user_schedule_start_time': schedule.start,
+                'user_schedule_verified_upgrade_deadline_time': schedule.upgrade_deadline,
+                'course_id': course_id_str,
+                'course_title': course.display_name,
+                'course_url': absolute_url(course_root),
+                'course_image_url': absolute_url(course.course_image_url),
+                'course_end_time': course.end,
+                'course_verified_upgrade_url': get_upgrade_link(enrollment),
+                'course_verified_upgrade_price': format_course_price(course.verified_modes[0].min_price),
             }
 
-        context[user.email] = email_context
+            with override_language(course.language):
+                translated_template = translated_template_cache.get(course.language)
+                if not translated_template:
+                    translated_template = template_env.from_string(unicode(email_template.content_template))
+                    translated_template_cache[course.language] = translated_template
+
+                email_context = {
+                    'template_subject': unicode(email_template.subject),
+                    'template_preview_text': unicode(email_template.preview_text),
+                    'template_body': translated_template.render(template_context),
+                    'template_from': template_context['course_title'],
+                }
+
+            context[user.email] = email_context
+
+    if len(capture.captured_queries) > 4:
+        for query in capture.captured_queries:
+            print(query['sql'])
+        raise Exception()
 
     return context
 
