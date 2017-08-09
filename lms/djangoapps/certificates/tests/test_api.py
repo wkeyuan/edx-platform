@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from functools import wraps
 
 import ddt
-import datetime
+from datetime import datetime, timedelta
 from config_models.models import cache
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -94,7 +94,7 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
             org='edx',
             number='verified',
             display_name='Verified Course',
-            end=datetime.datetime.now()
+            end=datetime.now()
         )
 
         self.request_factory = RequestFactory()
@@ -111,7 +111,6 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
             {
                 'is_downloadable': False,
                 'is_generating': True,
-                'is_dateunavailable': False,
                 'is_unverified': False,
                 'download_url': None,
                 'uuid': None,
@@ -131,7 +130,6 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
             {
                 'is_downloadable': False,
                 'is_generating': True,
-                'is_dateunavailable': False,
                 'is_unverified': False,
                 'download_url': None,
                 'uuid': None
@@ -144,7 +142,6 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
             {
                 'is_downloadable': False,
                 'is_generating': False,
-                'is_dateunavailable': False,
                 'is_unverified': False,
                 'download_url': None,
                 'uuid': None,
@@ -169,7 +166,6 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
             {
                 'is_downloadable': True,
                 'is_generating': False,
-                'is_dateunavailable': False,
                 'is_unverified': False,
                 'download_url': 'www.google.com',
                 'uuid': cert.verify_uuid
@@ -196,7 +192,6 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
             {
                 'is_downloadable': True,
                 'is_generating': False,
-                'is_dateunavailable': False,
                 'is_unverified': False,
                 'download_url': '/certificates/user/{user_id}/course/{course_id}'.format(
                     user_id=self.student.id,  # pylint: disable=no-member

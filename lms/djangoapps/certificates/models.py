@@ -518,9 +518,6 @@ def certificate_status(generated_certificate):
     regenerating    - A request has been made to regenerate a certificate,
                       but it has not been generated yet.
     deleting        - A request has been made to delete a certificate.
-    date_unavailable- The certificate cannot be displayed because the
-                      certificate availability date has not yet passed.
-
 
     deleted         - The certificate has been deleted.
     downloadable    - The certificate is available for download.

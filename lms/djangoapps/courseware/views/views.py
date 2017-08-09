@@ -910,6 +910,7 @@ def _get_cert_data(student, course, course_key, is_active, enrollment_mode):
     Returns:
         returns dict if course certificate is available else None.
     """
+    from lms.djangoapps.courseware.courses import get_course_by_id
 
     if enrollment_mode == CourseMode.AUDIT:
         return CertData(
@@ -923,6 +924,7 @@ def _get_cert_data(student, course, course_key, is_active, enrollment_mode):
     show_generate_cert_btn = (
         is_active and CourseMode.is_eligible_for_certificate(enrollment_mode)
         and certs_api.cert_generation_enabled(course_key)
+        and course_key and get_course_by_id(course_key).may_certify()
     )
 
     if not show_generate_cert_btn:
@@ -938,15 +940,6 @@ def _get_cert_data(student, course, course_key, is_active, enrollment_mode):
         )
 
     cert_downloadable_status = certs_api.certificate_downloadable_status(student, course_key)
-
-    if cert_downloadable_status['is_dateunavailable']:
-        return CertData(
-            CertificateStatuses.unavailable,
-            _('Congratulations, you qualified for a certificate!'),
-            _('You can keep working for a higher grade.'),
-            download_url=None,
-            cert_web_view_url=None
-        )
 
     if cert_downloadable_status['is_downloadable']:
         cert_status = CertificateStatuses.downloadable

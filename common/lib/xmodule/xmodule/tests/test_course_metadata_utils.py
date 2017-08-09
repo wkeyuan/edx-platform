@@ -167,6 +167,8 @@ class CourseMetadataUtilsTestCase(TestCase):
                 TestScenario(('end', False, True, test_datetime), True),
                 TestScenario(('end', False, False, _NEXT_WEEK), False),
                 TestScenario(('end', False, False, _LAST_WEEK), True),
+                TestScenario(('end', False, False, None), False),
+                TestScenario(('early_with_info', False, False, None), True),
             ]),
         ]
 
