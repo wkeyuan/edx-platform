@@ -17,6 +17,12 @@ class HLSPlaybackEnabledFlag(ConfigurationModel):
     # this field overrides course-specific settings
     enabled_for_all_courses = BooleanField(default=False)
 
+    class Meta(object):
+        """
+        HLSPlaybackEnabledFlag metadata.
+        """
+        app_label = 'video_config'
+
     @classmethod
     def feature_enabled(cls, course_id):
         """
@@ -56,6 +62,12 @@ class CourseHLSPlaybackEnabledFlag(ConfigurationModel):
     KEY_FIELDS = ('course_id',)
 
     course_id = CourseKeyField(max_length=255, db_index=True)
+
+    class Meta(object):
+        """
+        CourseHLSPlaybackEnabledFlag metadata.
+        """
+        app_label = 'video_config'
 
     def __unicode__(self):
         not_en = "Not "
