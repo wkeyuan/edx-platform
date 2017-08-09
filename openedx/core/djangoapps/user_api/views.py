@@ -19,9 +19,9 @@ import accounts
 from django_comment_common.models import Role
 from openedx.core.djangoapps.user_api.accounts.api import check_account_exists
 from openedx.core.djangoapps.user_api.api import (
-    RegistrationResponse,
-    get_login_session_response,
-    get_password_reset_response
+    RegistrationFormFactory,
+    get_login_session_form,
+    get_password_reset_form
 )
 from openedx.core.djangoapps.user_api.helpers import require_post_params, shim_student_view
 from openedx.core.djangoapps.user_api.models import UserPreference
@@ -43,7 +43,7 @@ class LoginSessionView(APIView):
 
     @method_decorator(ensure_csrf_cookie)
     def get(self, request):
-        return get_login_session_response()
+        return HttpResponse(get_login_session_form().to_json(), content_type="application/json")
 
     @method_decorator(require_post_params(["email", "password"]))
     @method_decorator(csrf_protect)
@@ -92,7 +92,9 @@ class RegistrationView(APIView):
 
     @method_decorator(ensure_csrf_cookie)
     def get(self, request):
-        return RegistrationResponse().get_registration_response(request),
+
+        return HttpResponse(RegistrationFormFactory().get_registration_form(request).to_json(),
+                            content_type="application/json")
 
     @method_decorator(csrf_exempt)
     def post(self, request):
@@ -178,7 +180,7 @@ class PasswordResetView(APIView):
 
     @method_decorator(ensure_csrf_cookie)
     def get(self, request):
-        return get_password_reset_response()
+        return HttpResponse(get_password_reset_form().to_json(), content_type="application/json")
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):

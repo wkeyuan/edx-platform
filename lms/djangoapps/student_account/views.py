@@ -30,9 +30,9 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
 from openedx.core.djangoapps.theming.helpers import is_request_in_themed_site
 from openedx.core.djangoapps.user_api.accounts.api import request_password_change
 from openedx.core.djangoapps.user_api.api import (
-    RegistrationResponse,
-    get_login_session_response,
-    get_password_reset_response
+    RegistrationFormFactory,
+    get_login_session_form,
+    get_password_reset_form
 )
 from openedx.core.djangoapps.user_api.errors import UserNotFound
 from openedx.core.lib.edx_api_utils import get_edx_api_data
@@ -391,9 +391,9 @@ def _get_form_descriptions(request):
     """
 
     return {
-        'password_reset': get_password_reset_response().content,
-        'login': get_login_session_response().content,
-        'registration': RegistrationResponse().get_registration_response(request).content
+        'password_reset': get_password_reset_form().to_json(),
+        'login': get_login_session_form().to_json(),
+        'registration': RegistrationFormFactory().get_registration_form(request).to_json()
     }
 
 

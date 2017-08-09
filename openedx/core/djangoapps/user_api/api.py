@@ -3,7 +3,6 @@ import copy
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
 from django.utils.translation import ugettext as _
 from django_countries import countries
 
@@ -17,7 +16,7 @@ from student.forms import get_registration_extension_form
 from student.models import UserProfile
 
 
-def get_password_reset_response():
+def get_password_reset_form():
     """Return a description of the password reset form.
 
     This decouples clients from the API definition:
@@ -59,10 +58,10 @@ def get_password_reset_response():
         }
     )
 
-    return HttpResponse(form_desc.to_json(), content_type="application/json")
+    return form_desc
 
 
-def get_login_session_response():
+def get_login_session_form():
     """Return a description of the login form.
 
     This decouples clients from the API definition:
@@ -126,10 +125,10 @@ def get_login_session_response():
         required=False,
     )
 
-    return HttpResponse(form_desc.to_json(), content_type="application/json")
+    return form_desc
 
 
-class RegistrationResponse(object):
+class RegistrationFormFactory(object):
     """HTTP end-points for creating a new user. """
 
     DEFAULT_FIELDS = ["email", "name", "username", "password"]
@@ -196,7 +195,7 @@ class RegistrationResponse(object):
 
         self.field_order = field_order
 
-    def get_registration_response(self, request):
+    def get_registration_form(self, request):
         """Return a description of the registration form.
         This decouples clients from the API definition:
         if the API decides to modify the form, clients won't need
@@ -268,7 +267,7 @@ class RegistrationResponse(object):
                         required=self._is_field_required(field_name)
                     )
 
-        return HttpResponse(form_desc.to_json(), content_type="application/json")
+        return form_desc
 
     def _add_email_field(self, form_desc, required=True):
         """Add an email field to a form description.
