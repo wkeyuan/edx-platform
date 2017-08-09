@@ -1,6 +1,6 @@
 from django.test import TestCase
 from nose.plugins.attrib import attr
-from opaque_keys.edx.locators import CourseLocator
+from opaque_keys.edx.locator import CourseLocator
 
 from django_comment_common.models import Role
 from models import CourseDiscussionSettings

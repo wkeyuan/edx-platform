@@ -1037,7 +1037,7 @@ def xblock_view(request, course_id, usage_id, view_name):
         raise PermissionDenied
 
     try:
-        course_key =  CourseKey.from_string(course_id)
+        course_key = CourseKey.from_string(course_id)
     except InvalidKeyError:
         raise Http404("Invalid location")
 
