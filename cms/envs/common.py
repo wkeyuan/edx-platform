@@ -908,6 +908,12 @@ INSTALLED_APPS = (
     # Testing
     'django_nose',
 
+    # Bookmarks
+    'openedx.core.djangoapps.bookmarks',
+
+    # Video module configs (This will be moved to Video once it becomes an XBlock)
+    'openedx.core.djangoapps.video_config',
+
     # For CMS
     'contentstore.apps.ContentstoreConfig',
 
@@ -994,17 +1000,11 @@ INSTALLED_APPS = (
     # edX Proctoring
     'edx_proctoring',
 
-    # Bookmarks
-    'openedx.core.djangoapps.bookmarks',
-
     # Catalog integration
     'openedx.core.djangoapps.catalog',
 
     # Self-paced course configuration
     'openedx.core.djangoapps.self_paced',
-
-    # Video module configs (This will be moved to Video once it becomes an XBlock)
-    'openedx.core.djangoapps.video_config',
 
     # django-oauth2-provider (deprecated)
     'provider',

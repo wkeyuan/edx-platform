@@ -21,7 +21,8 @@ class HLSPlaybackEnabledFlag(ConfigurationModel):
         """
         HLSPlaybackEnabledFlag metadata.
         """
-        app_label = 'video_config'
+        # app_label = 'video_config'
+        pass
 
     @classmethod
     def feature_enabled(cls, course_id):
@@ -67,7 +68,8 @@ class CourseHLSPlaybackEnabledFlag(ConfigurationModel):
         """
         CourseHLSPlaybackEnabledFlag metadata.
         """
-        app_label = 'video_config'
+        # app_label = 'video_config'
+        pass
 
     def __unicode__(self):
         not_en = "Not "

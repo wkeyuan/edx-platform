@@ -2012,6 +2012,12 @@ INSTALLED_APPS = (
     # Site configuration for theming and behavioral modification
     'openedx.core.djangoapps.site_configuration',
 
+    # Video module configs (This will be moved to Video once it becomes an XBlock)
+    'openedx.core.djangoapps.video_config',
+
+    # Bookmarks
+    'openedx.core.djangoapps.bookmarks',
+
     # Our courseware
     'courseware',
     'student',
@@ -2158,6 +2164,7 @@ INSTALLED_APPS = (
     'openedx.core.djangoapps.content.block_structure.apps.BlockStructureConfig',
     'lms.djangoapps.course_blocks',
 
+
     # Coursegraph
     'openedx.core.djangoapps.coursegraph.apps.CoursegraphConfig',
 
@@ -2180,9 +2187,6 @@ INSTALLED_APPS = (
     'lms.djangoapps.teams',
 
     'xblock_django',
-
-    # Bookmarks
-    'openedx.core.djangoapps.bookmarks',
 
     # programs support
     'openedx.core.djangoapps.programs',
@@ -2212,9 +2216,6 @@ INSTALLED_APPS = (
 
     # Verified Track Content Cohorting (Beta feature that will hopefully be removed)
     'openedx.core.djangoapps.verified_track_content',
-
-    # Video module configs (This will be moved to Video once it becomes an XBlock)
-    'openedx.core.djangoapps.video_config',
 
     # Learner's dashboard
     'learner_dashboard',
