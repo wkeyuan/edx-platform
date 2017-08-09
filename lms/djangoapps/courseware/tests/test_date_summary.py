@@ -18,7 +18,8 @@ from courseware.date_summary import (
     CourseStartDate,
     TodaysDate,
     VerificationDeadlineDate,
-    VerifiedUpgradeDeadlineDate
+    VerifiedUpgradeDeadlineDate,
+    CertificateAvailableDate
 )
 from courseware.models import DynamicUpgradeDeadlineConfiguration, CourseDynamicUpgradeDeadlineConfiguration
 from lms.djangoapps.verify_student.models import VerificationDeadline
@@ -350,6 +351,22 @@ class CourseDateSummaryTest(SharedModuleStoreTestCase):
 
         block = VerifiedUpgradeDeadlineDate(course, user)
         self.assertEqual(block.link, '{}?sku={}'.format(configuration.MULTIPLE_ITEMS_BASKET_PAGE_URL, sku))
+
+    ## CertificateAvailableDate
+    def test_no_certificate_available_date(self):
+        self.setup_course_and_user()
+        block = CertificateAvailableDate(self.course, self.user)
+        self.assertEqual(block.date, None)
+        self.assertFalse(block.is_enabled)
+
+    def test_certificate_available_date_defined(self):
+        self.setup_course_and_user()
+        self.course.certificate_available_date = datetime.now(utc)
+        self.course.save()
+        block = CertificateAvailableDate(self.course, self.user)
+        self.assertIsNotNone(self.course.certificate_available_date)
+        self.assertEqual(block.date, self.course.certificate_available_date)
+        self.assertTrue(block.is_enabled)
 
     ## VerificationDeadlineDate
     def test_no_verification_deadline(self):

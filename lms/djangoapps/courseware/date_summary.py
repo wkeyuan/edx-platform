@@ -201,7 +201,7 @@ class CertificateAvailableDate(DateSummary):
         Displays the end date of the course.
         """
     css_class = 'certificate-available-date'
-    title = ugettext_lazy('Certificate Available Date')
+    title = ugettext_lazy('Certificate Available')
 
     @property
     def is_enabled(self):
