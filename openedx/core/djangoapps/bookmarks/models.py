@@ -54,7 +54,6 @@ class Bookmark(TimeStampedModel):
         Bookmark metadata.
         """
         unique_together = ('user', 'usage_key')
-        # app_label = 'bookmarks'
 
     def __unicode__(self):
         return self.resource_id
@@ -196,13 +195,6 @@ class XBlockCache(TimeStampedModel):
     _paths = JSONField(
         db_column='paths', default=[], help_text='All paths in course tree to the corresponding block.'
     )
-
-    class Meta(object):
-        """
-        XBlockCache metadata.
-        """
-        # app_label = 'bookmarks'
-        pass
 
     def __unicode__(self):
         return unicode(self.usage_key)
