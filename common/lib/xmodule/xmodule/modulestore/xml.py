@@ -26,6 +26,7 @@ from xmodule.x_module import (
 from xmodule.modulestore.xml_exporter import DEFAULT_CONTENT_FIELDS
 from xmodule.modulestore import ModuleStoreEnum, ModuleStoreReadBase, LIBRARY_ROOT, COURSE_ROOT
 from xmodule.tabs import CourseTabList
+from opaque_keys.edx.keys import CourseKey
 from opaque_keys.edx.locations import SlashSeparatedCourseKey, Location
 from opaque_keys.edx.locator import CourseLocator, LibraryLocator, BlockUsageLocator
 
