@@ -22,7 +22,7 @@ from mock import Mock, patch
 from operator import attrgetter
 from path import Path as path
 
-from opaque_keys.edx.locations import SlashSeparatedCourseKey
+from opaque_keys.edx.keys import CourseKey
 from xblock.field_data import DictFieldData
 from xblock.fields import ScopeIds, Scope, Reference, ReferenceList, ReferenceValueDict
 from xmodule.assetstore import AssetMetadata
@@ -86,7 +86,7 @@ class TestModuleSystem(ModuleSystem):  # pylint: disable=abstract-method
         return rt_repr
 
 
-def get_test_system(course_id=SlashSeparatedCourseKey('org', 'course', 'run')):
+def get_test_system(course_id=CourseKey.from_string('/'.join(['org', 'course', 'run']))):
     """
     Construct a test ModuleSystem instance.
 
